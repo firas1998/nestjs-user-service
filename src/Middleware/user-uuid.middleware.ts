@@ -16,9 +16,9 @@ export class UserUuidMiddleware implements NestMiddleware {
         // eslint-disable-next-line @typescript-eslint/ban-types
         next: Function
     ): Promise<void> {
-        const userId = ''; //await this.authenticationService.getUserIdFromRequest(
-        //  req
-        //);
+        const userId = await this.authenticationService.getUserIdFromRequest(
+            req
+        );
         req.headers[Constants.USER_HEADER] = userId;
         next();
     }
