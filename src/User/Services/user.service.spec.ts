@@ -7,13 +7,13 @@ import { User } from '../Entities/user.entity';
 import { Gender } from '../Enums/gender.enum';
 import { UserAlreadyExistsException } from '../../Exceptions/user-already-exists.exception';
 import { UserNotFoundException } from '../../Exceptions/user-not-found.exception';
-import { ClientProxy } from '@nestjs/microservices';
+//import { ClientProxy } from '@nestjs/microservices';
 import { Constants } from '../../constants';
 
 describe('UserService', () => {
     let userService: UserService;
     let userRepo: Repository<User>;
-    let clientProxy: ClientProxy;
+    //let clientProxy: ClientProxy;
 
     const userRepoMock = {
         insert: jest.fn(),
@@ -43,7 +43,7 @@ describe('UserService', () => {
 
         userService = app.get<UserService>(UserService);
         userRepo = app.get<Repository<User>>(getRepositoryToken(User));
-        clientProxy = app.get<ClientProxy>(Constants.MICROSERVICE_NAME);
+        //clientProxy = app.get<ClientProxy>(Constants.MICROSERVICE_NAME);
     });
 
     afterEach(() => {
@@ -53,7 +53,6 @@ describe('UserService', () => {
     describe('create user', () => {
         it('should return true', async () => {
             jest.spyOn(userRepo, 'findOne').mockResolvedValue(null);
-            jest.spyOn(clientProxy, 'emit');
             jest.spyOn(userRepo, 'insert').mockResolvedValue({
                 identifiers: [],
                 generatedMaps: [],

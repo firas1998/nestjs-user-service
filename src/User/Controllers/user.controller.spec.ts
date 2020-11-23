@@ -1,22 +1,21 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
-import {
-    getRepositoryToken,
-    TypeOrmModule,
-    TypeOrmModuleOptions
-} from '@nestjs/typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../Entities/user.entity';
 import { Gender } from '../Enums/gender.enum';
-import { UserModule } from '../Modules/user.module';
 import { Constants } from '../../constants';
 import { INestApplication } from '@nestjs/common';
-import { EventModule } from '../../Events/Modules/event.module';
+import { TestingAppModule } from '../../app.module';
+import { AuthenticationService } from '../../Authentication/Services/authentication.service';
+import { v4 } from 'uuid';
 
 describe('UserContoller', () => {
     let app: INestApplication;
     let userRepo: Repository<User>;
-    const options: TypeOrmModuleOptions = Constants.TESTING_DATABASE_DATA as TypeOrmModuleOptions;
+    let authService: AuthenticationService;
+    let idToken: string;
+    const uuid = v4();
 
     const clientProxyMock = {
         emit: () => true
@@ -24,7 +23,7 @@ describe('UserContoller', () => {
 
     beforeAll(async () => {
         const moduleRef: TestingModule = await Test.createTestingModule({
-            imports: [TypeOrmModule.forRoot(options), UserModule, EventModule]
+            imports: [TestingAppModule]
         })
             .overrideProvider(Constants.MICROSERVICE_NAME)
             .useValue(clientProxyMock)
@@ -33,6 +32,9 @@ describe('UserContoller', () => {
         app = moduleRef.createNestApplication();
         await app.init();
         userRepo = app.get<Repository<User>>(getRepositoryToken(User));
+        authService = app.get<AuthenticationService>(AuthenticationService);
+        idToken =
+            'Bearer ' + (await authService.generateIdTokenForTesting(uuid));
     });
 
     afterEach(async (done) => {
@@ -45,7 +47,7 @@ describe('UserContoller', () => {
         it('POST /user', () => {
             return request(app.getHttpServer())
                 .post('/user/create')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({
                     firstName: 'test',
                     lastName: 'test',
@@ -58,7 +60,7 @@ describe('UserContoller', () => {
 
         it('POST /user fail', () => {
             userRepo.insert({
-                uuid: '123-123-123-123',
+                uuid: uuid,
                 firstName: 'test',
                 lastName: 'test',
                 dateOfBirth: '1999-11-11',
@@ -68,7 +70,7 @@ describe('UserContoller', () => {
 
             return request(app.getHttpServer())
                 .post('/user/create')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({
                     firstName: 'test',
                     lastName: 'test',
@@ -81,7 +83,7 @@ describe('UserContoller', () => {
 
         it('POST /user validation fail', () => {
             userRepo.insert({
-                uuid: '123-123-123-123',
+                uuid: uuid,
                 firstName: 'test',
                 lastName: 'test',
                 dateOfBirth: '1999-11-11',
@@ -91,7 +93,7 @@ describe('UserContoller', () => {
 
             return request(app.getHttpServer())
                 .post('/user/create')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({
                     lastName: 'test',
                     dateOfBirth: '1999-11-11',
@@ -106,7 +108,7 @@ describe('UserContoller', () => {
         it('GET /user', () => {
             userRepo.insert({
                 id: 1,
-                uuid: '123-123-123-123',
+                uuid: uuid,
                 firstName: 'test',
                 lastName: 'test',
                 dateOfBirth: '1999-11-11',
@@ -116,17 +118,17 @@ describe('UserContoller', () => {
 
             return request(app.getHttpServer())
                 .get('/user')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .expect(200)
                 .expect((res) => {
-                    expect(res.body.uuid).toBe('123-123-123-123');
+                    expect(res.body.uuid).toBe(uuid);
                 });
         });
 
         it('GET /user fail', () => {
             return request(app.getHttpServer())
                 .get('/user')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .expect(404);
         });
     });
@@ -134,7 +136,7 @@ describe('UserContoller', () => {
     describe('Update user', () => {
         it('PATCH /user/update', () => {
             userRepo.insert({
-                uuid: '123-123-123-123',
+                uuid: uuid,
                 firstName: 'test',
                 lastName: 'test',
                 dateOfBirth: '1999-11-11',
@@ -144,7 +146,7 @@ describe('UserContoller', () => {
 
             return request(app.getHttpServer())
                 .patch('/user/update')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({
                     pushNotificationToken: 'test1'
                 })
@@ -157,7 +159,7 @@ describe('UserContoller', () => {
         it('PATCH /user/update fail', () => {
             return request(app.getHttpServer())
                 .patch('/user/update')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({
                     pushNotificationToken: 'test'
                 })
@@ -167,7 +169,7 @@ describe('UserContoller', () => {
         it('PATCH /user/update validation fail', () => {
             return request(app.getHttpServer())
                 .patch('/user/update')
-                .set({ user_id: '123-123-123-123' })
+                .set({ Authorization: idToken })
                 .send({})
                 .expect(400);
         });

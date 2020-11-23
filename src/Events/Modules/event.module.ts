@@ -5,7 +5,10 @@ import { Constants } from '../../constants';
 const clientsModule = ClientsModule.register([
     {
         name: Constants.MICROSERVICE_NAME,
-        transport: Transport.REDIS
+        transport: Transport.REDIS,
+        options: {
+            url: `${process.env.DATABASE_REDIS}://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+        }
     }
 ]);
 
