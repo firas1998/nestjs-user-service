@@ -4,9 +4,8 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../Entities/user.entity';
 import { Gender } from '../Enums/gender.enum';
-import { Constants } from '../../constants';
 import { INestApplication } from '@nestjs/common';
-import { TestingAppModule } from '../../app.module';
+import { AppModule } from '../../app.module';
 import { AuthenticationService } from '../../Authentication/Services/authentication.service';
 import { v4 } from 'uuid';
 
@@ -17,17 +16,10 @@ describe('UserContoller', () => {
     let idToken: string;
     const uuid = v4();
 
-    const clientProxyMock = {
-        emit: () => true
-    };
-
     beforeAll(async () => {
         const moduleRef: TestingModule = await Test.createTestingModule({
-            imports: [TestingAppModule]
-        })
-            .overrideProvider(Constants.MICROSERVICE_NAME)
-            .useValue(clientProxyMock)
-            .compile();
+            imports: [AppModule]
+        }).compile();
 
         app = moduleRef.createNestApplication();
         await app.init();

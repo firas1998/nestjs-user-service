@@ -10,15 +10,5 @@ export const Constants = {
         UNAUTHORIZED: 'This is not yours !',
         SERVER: 'Somehting went wrong'
     },
-    USER_HEADER: 'user_id',
-    TESTING_DATABASE_DATA: {
-        type: 'mysql',
-        host: 'localhost',
-        port: 3306,
-        username: 'testuser',
-        password: 'password',
-        database: 'user-service-test',
-        entities: ['src/**/*.entity.ts'],
-        synchronize: true
-    }
+    USER_HEADER: 'user_id'
 };
