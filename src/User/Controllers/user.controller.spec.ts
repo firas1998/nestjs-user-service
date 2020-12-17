@@ -31,7 +31,7 @@ describe('UserContoller', () => {
 
     afterEach(async (done) => {
         jest.clearAllMocks();
-        await userRepo.clear();
+        await userRepo.query('DELETE FROM users WHERE 1=1');
         done();
     });
 
